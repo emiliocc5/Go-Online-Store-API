@@ -1,19 +1,17 @@
 package main
 
 import (
-	"github.com/emiliocc5/online-store-api/internal/services"
-	"github.com/gin-gonic/gin"
-	"net/http"
+	"github.com/emiliocc5/online-store-api/internal/server"
 )
 
 func main() {
-	s := services.New()
+	s := server.New()
 
-	r := s.Router()
+	/*r := s.Router()
 
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"data": "hello world"})
-	})
+	})*/
 
 	s.Run()
 }
