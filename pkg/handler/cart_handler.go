@@ -8,7 +8,7 @@ import (
 type (
 	CartHandler interface {
 		HandleGetCart(context *gin.Context)
-		HandleAddProduct(productId int)
+		HandleAddProduct(context *gin.Context)
 	}
 	CartHandlerImpl struct {
 		CartService services.CartService //TODO change this to initialize alone
@@ -19,6 +19,7 @@ func (ch *CartHandlerImpl) HandleGetCart(context *gin.Context) {
 	ch.CartService.GetCart(context)
 }
 
-func (ch *CartHandlerImpl) HandleAddProduct(productId int) {
-	ch.CartService.AddProduct(productId)
+func (ch *CartHandlerImpl) HandleAddProduct(context *gin.Context) {
+	//TODO getProductId from context
+	ch.CartService.AddProduct(123)
 }

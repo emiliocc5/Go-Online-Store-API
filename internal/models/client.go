@@ -1,4 +1,4 @@
-package dbModel
+package models
 
 type Client struct {
 	tableName struct{} `pg:"clients"`

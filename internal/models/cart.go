@@ -1,6 +1,9 @@
-package dbModel
+package models
+
+import "gorm.io/gorm"
 
 type Cart struct {
-	Id       int `pg:"id"`
-	ClientId int `pg:"clientid"`
+	gorm.Model
+	Id       int
+	ClientId int
 }

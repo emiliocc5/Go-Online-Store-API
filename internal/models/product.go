@@ -1,4 +1,4 @@
-package dbModel
+package models
 
 type Product struct {
 	tableName   struct{} `pg:"products"`

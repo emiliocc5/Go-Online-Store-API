@@ -1,4 +1,4 @@
-package dbModel
+package models
 
 type ProductCart struct {
 	tableName struct{} `pg:"products_carts"`
