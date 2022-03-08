@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/emiliocc5/online-store-api/internal/repository"
 	"github.com/emiliocc5/online-store-api/internal/services"
 	"github.com/emiliocc5/online-store-api/pkg/handler"
 	"github.com/gin-gonic/gin"
@@ -9,7 +10,7 @@ import (
 const (
 	BaseEndpoint = "/api"
 	Cart         = "/cart"
-	AddProduct   = "/api/cart/products/:productId"
+	AddProduct   = "/products/:productId"
 )
 
 var (
@@ -27,6 +28,8 @@ func configureCartRoutes(engine *gin.Engine) {
 
 func init() {
 	cartHandler = &handler.CartHandlerImpl{
-		CartService: &services.CartServiceImpl{},
+		CartService: &services.CartServiceImpl{
+			CartRepository: repository.GetCartRepository(),
+		},
 	}
 }

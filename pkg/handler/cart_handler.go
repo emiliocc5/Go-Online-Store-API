@@ -15,11 +15,12 @@ type (
 	}
 )
 
+//TODO FORMAT CONTEXT IN HANDLER AND PASS VALUES
+
 func (ch *CartHandlerImpl) HandleGetCart(context *gin.Context) {
 	ch.CartService.GetCart(context)
 }
 
 func (ch *CartHandlerImpl) HandleAddProduct(context *gin.Context) {
-	//TODO getProductId from context
-	ch.CartService.AddProduct(123)
+	ch.CartService.AddProduct(context)
 }
