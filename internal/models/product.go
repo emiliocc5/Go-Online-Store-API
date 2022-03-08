@@ -1,9 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
 type Product struct {
-	gorm.Model
+	Id          int     `gorm:"primarykey"`
 	CategoryId  int     `json:"categoryId"`
 	Label       string  `json:"label"`
 	Type        int     `json:"type"`

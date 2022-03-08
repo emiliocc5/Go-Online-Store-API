@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/emiliocc5/online-store-api/internal/models"
+	"github.com/emiliocc5/online-store-api/internal/utils"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
@@ -28,6 +29,10 @@ var (
 	DbPort     = os.Getenv("DB_PORT")
 )
 
+func init() {
+	logger = utils.GetLogger()
+}
+
 func GetDbClient() *DBClientImpl {
 	return &DBClientImpl{}
 }
@@ -46,12 +51,11 @@ func getClientInstance() (*gorm.DB, error) {
 func connectDatabase() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=localhost port=5432 user=goApiUser password=1234 dbname=OnlineStore sslmode=disable")
 	//dsn := fmt.Sprintf("host=%+v user=%+v password=%+v dbname=%+v port=%+v sslmode=disable", DbHost, DbUser, DbPassword, DbName, DbPort)
-
-	fmt.Println("Openning connection")
+	
+	logger.Info("Opening connections")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		//TODO LOG ERROR
-		fmt.Println(fmt.Sprintf("error message: %s", err))
+		logger.Error("error message: %s", err)
 		return nil, err
 	}
 	err1 := migrateTables(db)

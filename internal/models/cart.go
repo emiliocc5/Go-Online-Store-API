@@ -1,9 +1,7 @@
 package models
 
-import "gorm.io/gorm"
-
 type Cart struct {
-	gorm.Model
-	ClientId uint
+	Id       int `gorm:"primarykey"`
+	ClientId int
 	Client   Client
 }
