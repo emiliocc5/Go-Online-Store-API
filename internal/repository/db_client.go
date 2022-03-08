@@ -51,7 +51,7 @@ func getClientInstance() (*gorm.DB, error) {
 func connectDatabase() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=localhost port=5432 user=goApiUser password=1234 dbname=OnlineStore sslmode=disable")
 	//dsn := fmt.Sprintf("host=%+v user=%+v password=%+v dbname=%+v port=%+v sslmode=disable", DbHost, DbUser, DbPassword, DbName, DbPort)
-	
+
 	logger.Info("Opening connections")
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -66,15 +66,14 @@ func connectDatabase() (*gorm.DB, error) {
 	return db, nil
 }
 
+//TODO refactor this
 func migrateTables(db *gorm.DB) error {
 	err1 := db.AutoMigrate(&models.Cart{})
 	if err1 != nil {
-		//TODO LOG ERROR
 		return err1
 	}
 	err2 := db.AutoMigrate(&models.Product{})
 	if err2 != nil {
-		//TODO LOG ERROR
 		return err2
 	}
 	err3 := db.AutoMigrate(&models.ProductCart{})
