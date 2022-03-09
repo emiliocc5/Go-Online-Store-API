@@ -6,13 +6,11 @@ import (
 	"github.com/emiliocc5/online-store-api/internal/models"
 	"github.com/emiliocc5/online-store-api/internal/utils"
 	"github.com/sirupsen/logrus"
-	"sync"
+	"gorm.io/gorm"
 )
 
 var (
-	onceCartRepository sync.Once
-	cartRepositoryImpl *CartRepositoryImpl
-	logger             *logrus.Logger
+	logger *logrus.Logger
 )
 
 type (
@@ -21,28 +19,32 @@ type (
 		AddProductToCart(productId, clientId int) error
 	}
 	CartRepositoryImpl struct {
-		DbClient IDBClient
+		DbClient ICartRepositoryDbClient
+	}
+	ICartRepositoryDbClient interface {
+		First(dest interface{}, conds ...interface{}) (tx *gorm.DB)
+		Find(dest interface{}, conds ...interface{}) (tx *gorm.DB)
+		Create(value interface{}) (tx *gorm.DB)
 	}
 )
 
-func (cr *CartRepositoryImpl) GetCart(clientId int) (*[]models.Product, error) {
+func init() {
 	logger = utils.GetLogger()
-	client, err := cr.DbClient.GetClient()
-	if err != nil {
-		return nil, err
-	}
+}
+
+func (cr *CartRepositoryImpl) GetCart(clientId int) (*[]models.Product, error) {
 
 	clientCart := models.Cart{
 		ClientId: clientId,
 	}
 
-	clientResult := client.First(&clientCart, "client_id = ?", clientId)
+	clientResult := cr.DbClient.First(&clientCart, "client_id = ?", clientId)
 	if clientResult.Error != nil {
 		return nil, errors.New("cart not found")
 	}
 
 	var productsCarts []models.ProductCart
-	productsResult := client.Find(&productsCarts, "cart_id = ?", clientCart.Id)
+	productsResult := cr.DbClient.Find(&productsCarts, "cart_id = ?", clientCart.Id)
 	if productsResult.Error != nil {
 		return nil, errors.New("unable to retrieve the list of products")
 	}
@@ -50,7 +52,7 @@ func (cr *CartRepositoryImpl) GetCart(clientId int) (*[]models.Product, error) {
 	var productsList []models.Product
 	for _, e := range productsCarts {
 		product := models.Product{}
-		productResult := client.Find(&product, "id = ?", e.ProductId)
+		productResult := cr.DbClient.Find(&product, "id = ?", e.ProductId)
 		if productResult.Error != nil {
 			logger.Error("unable to get the product: %s", productResult.Error.Error())
 		}
@@ -61,27 +63,22 @@ func (cr *CartRepositoryImpl) GetCart(clientId int) (*[]models.Product, error) {
 }
 
 func (cr *CartRepositoryImpl) AddProductToCart(productId, clientId int) error {
-	client, err := cr.DbClient.GetClient()
-	if err != nil {
-		return err
-	}
-
 	clientCart := models.Cart{
 		ClientId: clientId,
 	}
 
-	clientResult := client.First(&clientCart, "client_id = ?", clientId)
+	clientResult := cr.DbClient.First(&clientCart, "client_id = ?", clientId)
 
 	if clientResult.Error != nil {
 		fmt.Println(fmt.Sprintf("Error: %v", clientResult.Error.Error()))
-		createResult := client.Create(&clientCart)
+		createResult := cr.DbClient.Create(&clientCart) //TODO Hay un first or create
 		if createResult.Error != nil {
 			return errors.New("cart not found! unable to create new cart")
 		}
 	}
 
 	product := models.Product{}
-	productResult := client.First(&product, "id = ?", productId)
+	productResult := cr.DbClient.First(&product, "id = ?", productId)
 	if productResult.Error != nil {
 		return errors.New("unable to find the product")
 	}
@@ -91,7 +88,7 @@ func (cr *CartRepositoryImpl) AddProductToCart(productId, clientId int) error {
 		CartId:    clientCart.Id,
 	}
 
-	productCartResult := client.Create(&productCart)
+	productCartResult := cr.DbClient.Create(&productCart)
 	if productCartResult.Error != nil {
 		return errors.New("unable to add product to the cart")
 	}
@@ -99,13 +96,4 @@ func (cr *CartRepositoryImpl) AddProductToCart(productId, clientId int) error {
 	fmt.Println("Product added to the cart")
 
 	return nil
-}
-
-func GetCartRepository() *CartRepositoryImpl {
-	onceCartRepository.Do(func() {
-		cartRepositoryImpl = &CartRepositoryImpl{
-			DbClient: GetDbClient(),
-		}
-	})
-	return cartRepositoryImpl
 }

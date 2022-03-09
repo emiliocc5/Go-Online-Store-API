@@ -10,13 +10,6 @@ import (
 	"sync"
 )
 
-type (
-	IDBClient interface {
-		GetClient() (*gorm.DB, error)
-	}
-	DBClientImpl struct{}
-)
-
 var (
 	once          sync.Once
 	dbInstance    *gorm.DB
@@ -33,11 +26,7 @@ func init() {
 	logger = utils.GetLogger()
 }
 
-func GetDbClient() *DBClientImpl {
-	return &DBClientImpl{}
-}
-
-func (dbc *DBClientImpl) GetClient() (*gorm.DB, error) {
+func GetClient() (*gorm.DB, error) {
 	return getClientInstance()
 }
 
@@ -48,6 +37,7 @@ func getClientInstance() (*gorm.DB, error) {
 	return dbInstance, errorInstance
 }
 
+//TODO get variables from env
 func connectDatabase() (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=localhost port=5432 user=goApiUser password=1234 dbname=OnlineStore sslmode=disable")
 	//dsn := fmt.Sprintf("host=%+v user=%+v password=%+v dbname=%+v port=%+v sslmode=disable", DbHost, DbUser, DbPassword, DbName, DbPort)
@@ -66,23 +56,13 @@ func connectDatabase() (*gorm.DB, error) {
 	return db, nil
 }
 
-//TODO refactor this
 func migrateTables(db *gorm.DB) error {
-	err1 := db.AutoMigrate(&models.Cart{})
+	err1 := db.AutoMigrate(&models.Cart{},
+		&models.Product{},
+		&models.ProductCart{},
+		&models.Client{})
 	if err1 != nil {
 		return err1
-	}
-	err2 := db.AutoMigrate(&models.Product{})
-	if err2 != nil {
-		return err2
-	}
-	err3 := db.AutoMigrate(&models.ProductCart{})
-	if err3 != nil {
-		return err3
-	}
-	err4 := db.AutoMigrate(&models.Client{})
-	if err4 != nil {
-		return err4
 	}
 
 	return nil

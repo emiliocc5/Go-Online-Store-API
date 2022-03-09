@@ -25,5 +25,5 @@ func configureCartRoutes(engine *gin.Engine) {
 }
 
 func init() {
-	cartHandler = handler.NewCartHandler()
+	cartHandler = &handler.CartHandlerImpl{}
 }
