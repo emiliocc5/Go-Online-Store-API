@@ -25,6 +25,7 @@ type (
 		First(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 		Find(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 		Create(value interface{}) (tx *gorm.DB)
+		FirstOrCreate(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 	}
 )
 
@@ -33,54 +34,43 @@ func init() {
 }
 
 func (cr *CartRepositoryImpl) GetCart(clientId int) (*[]models.Product, error) {
-
-	clientCart := models.Cart{
-		ClientId: clientId,
+	if !cr.isClientInDataBase(clientId) {
+		return nil, errors.New(fmt.Sprintf("client with id: %v not found", clientId))
 	}
+	clientCart := models.Cart{ClientId: clientId}
 
-	clientResult := cr.DbClient.First(&clientCart, "client_id = ?", clientId)
-	if clientResult.Error != nil {
-		return nil, errors.New("cart not found")
+	err := cr.findCartForClientId(&clientCart, clientId)
+	if err != nil {
+		return nil, err
 	}
 
 	var productsCarts []models.ProductCart
-	productsResult := cr.DbClient.Find(&productsCarts, "cart_id = ?", clientCart.Id)
-	if productsResult.Error != nil {
-		return nil, errors.New("unable to retrieve the list of products")
+	err = cr.findListOfProductsForCartId(&productsCarts, clientCart.Id)
+	if err != nil {
+		return nil, err
 	}
 
-	var productsList []models.Product
-	for _, e := range productsCarts {
-		product := models.Product{}
-		productResult := cr.DbClient.Find(&product, "id = ?", e.ProductId)
-		if productResult.Error != nil {
-			logger.Error("unable to get the product: %s", productResult.Error.Error())
-		}
-		productsList = append(productsList, product)
-	}
+	var productList []models.Product
+	cr.findProductsFromProductCartsList(productsCarts, &productList)
 
-	return &productsList, nil
+	return &productList, nil
 }
 
 func (cr *CartRepositoryImpl) AddProductToCart(productId, clientId int) error {
-	clientCart := models.Cart{
-		ClientId: clientId,
+	if !cr.isClientInDataBase(clientId) {
+		return errors.New(fmt.Sprintf("client with id: %v not found", clientId))
 	}
 
-	clientResult := cr.DbClient.First(&clientCart, "client_id = ?", clientId)
-
-	if clientResult.Error != nil {
-		fmt.Println(fmt.Sprintf("Error: %v", clientResult.Error.Error()))
-		createResult := cr.DbClient.Create(&clientCart) //TODO Hay un first or create
-		if createResult.Error != nil {
-			return errors.New("cart not found! unable to create new cart")
-		}
+	clientCart := models.Cart{ClientId: clientId}
+	err := cr.findOrCreateCartForClientId(&clientCart, clientId)
+	if err != nil {
+		return err
 	}
 
 	product := models.Product{}
-	productResult := cr.DbClient.First(&product, "id = ?", productId)
-	if productResult.Error != nil {
-		return errors.New("unable to find the product")
+	err = cr.findProductById(&product, productId)
+	if err != nil {
+		return err
 	}
 
 	productCart := models.ProductCart{
@@ -90,10 +80,61 @@ func (cr *CartRepositoryImpl) AddProductToCart(productId, clientId int) error {
 
 	productCartResult := cr.DbClient.Create(&productCart)
 	if productCartResult.Error != nil {
+		logger.Errorf("Error: %v", productCartResult.Error.Error())
 		return errors.New("unable to add product to the cart")
 	}
 
-	fmt.Println("Product added to the cart")
+	logger.Info("Product added to the cart")
 
+	return nil
+}
+
+func (cr *CartRepositoryImpl) isClientInDataBase(clientId int) bool {
+	client := models.Client{}
+	findClientResult := cr.DbClient.Find(&client, "id = ?", clientId)
+	return findClientResult.Error == nil
+}
+
+func (cr *CartRepositoryImpl) findCartForClientId(clientCart *models.Cart, clientId int) error {
+	clientResult := cr.DbClient.First(clientCart, "client_id = ?", clientId)
+	if clientResult.Error != nil {
+		return errors.New("cart not found")
+	}
+	return nil
+}
+
+func (cr *CartRepositoryImpl) findListOfProductsForCartId(productCarts *[]models.ProductCart, clientCartId int) error {
+	productsResult := cr.DbClient.Find(productCarts, "cart_id = ?", clientCartId)
+	if productsResult.Error != nil {
+		return errors.New("unable to retrieve the list of products")
+	}
+	return nil
+}
+
+func (cr *CartRepositoryImpl) findProductsFromProductCartsList(productCarts []models.ProductCart, productList *[]models.Product) {
+	for _, e := range productCarts {
+		product := models.Product{}
+		err := cr.findProductById(&product, e.ProductId)
+		if err != nil {
+			logger.Error("unable to get the product: %s", err.Error())
+		}
+		*productList = append(*productList, product)
+	}
+}
+
+func (cr *CartRepositoryImpl) findProductById(product *models.Product, productId int) error {
+	productResult := cr.DbClient.Find(product, "id = ?", productId)
+	if productResult.Error != nil {
+		return productResult.Error
+	}
+	return nil
+}
+
+func (cr *CartRepositoryImpl) findOrCreateCartForClientId(clientCart *models.Cart, clientId int) error {
+	clientResult := cr.DbClient.FirstOrCreate(clientCart, "client_id = ?", clientId)
+	if clientResult.Error != nil {
+		logger.Errorf("Error: %v", clientResult.Error.Error())
+		return errors.New("cart not found! unable to create new cart")
+	}
 	return nil
 }
