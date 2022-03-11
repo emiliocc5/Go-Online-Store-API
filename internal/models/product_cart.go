@@ -3,7 +3,7 @@ package models
 type ProductCart struct {
 	Id        int `gorm:"primarykey"`
 	ProductId int
-	Product   Product
+	Product   Product //TODO Check if this its neccessary
 	CartId    int
-	Cart      Cart
+	Cart      Cart //TODO Check if this its neccessary
 }

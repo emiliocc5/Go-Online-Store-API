@@ -98,7 +98,7 @@ func (cr *CartRepositoryImpl) isClientInDataBase(clientId int) bool {
 func (cr *CartRepositoryImpl) findCartForClientId(clientCart *models.Cart, clientId int) error {
 	clientResult := cr.DbClient.First(clientCart, "client_id = ?", clientId)
 	if clientResult.Error != nil {
-		return errors.New("cart not found")
+		return errors.New(fmt.Sprintf("cart for client id: %v not found", clientId))
 	}
 	return nil
 }

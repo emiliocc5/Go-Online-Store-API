@@ -28,8 +28,11 @@ func (mock *DbClientMock) FirstOrCreate(dest interface{}, conds ...interface{}) 
 	return args.Get(0).(*gorm.DB)
 }
 
-func getMockedSuccessDbObject(value interface{}) *gorm.DB {
-	dbOb := gorm.DB{Statement: &gorm.Statement{Dest: value}}
+func getMockedDbObject(dest interface{}, err error) *gorm.DB {
+	dbOb := gorm.DB{
+		Statement: &gorm.Statement{Dest: dest},
+		Error:     err,
+	}
 	return &dbOb
 }
 
