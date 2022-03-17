@@ -66,23 +66,3 @@ func Test_GetCartWithError(t *testing.T) {
 	assert.Error(t, err, "cart not found")
 	assert.Equal(t, 0, len(resp.Products))
 }
-
-func getValidListOfProducts() *[]models.Product {
-	var products []models.Product
-
-	product := getValidProduct()
-
-	products = append(products, product)
-	return &products
-}
-
-func getValidProduct() models.Product {
-	return models.Product{
-		Id:          1,
-		CategoryId:  1,
-		Label:       "Keyboard",
-		Type:        1,
-		DownloadUrl: "",
-		Weight:      3.5,
-	}
-}
