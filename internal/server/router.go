@@ -1,8 +1,12 @@
 package server
 
 import (
+	"fmt"
+	"github.com/emiliocc5/online-store-api/internal/repository"
+	"github.com/emiliocc5/online-store-api/internal/services"
 	"github.com/emiliocc5/online-store-api/pkg/handler"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -12,6 +16,7 @@ const (
 )
 
 var (
+	logger      *logrus.Logger
 	cartHandler handler.CartHandler
 )
 
@@ -25,5 +30,15 @@ func configureCartRoutes(engine *gin.Engine) {
 }
 
 func init() {
-	cartHandler = &handler.CartHandlerImpl{}
+	client, err := repository.GetClient()
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error getting DbClient: %v", err.Error()))
+	}
+	cartHandler = &handler.CartHandlerImpl{
+		CartService: &services.CartServiceImpl{
+			CartRepository: &repository.CartRepositoryImpl{
+				DbClient: client,
+			},
+		},
+	}
 }

@@ -18,14 +18,7 @@ type (
 	}
 )
 
-func (ch *CartHandlerImpl) setServices() {
-	if ch.CartService == nil {
-		ch.CartService = &services.CartServiceImpl{}
-	}
-}
-
 func (ch *CartHandlerImpl) HandleGetCart(context *gin.Context) {
-	ch.setServices()
 	resp, err := ch.CartService.GetCart(getClientIdFromContext(context))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, response.ErrorResponse{Error: err.Error()})
@@ -35,7 +28,6 @@ func (ch *CartHandlerImpl) HandleGetCart(context *gin.Context) {
 }
 
 func (ch *CartHandlerImpl) HandleAddProduct(context *gin.Context) {
-	ch.setServices()
 	err := ch.CartService.AddProduct(getProductIdFromContext(context), getClientIdFromContext(context))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, response.ErrorResponse{Error: err.Error()})

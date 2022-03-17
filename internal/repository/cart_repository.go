@@ -116,9 +116,10 @@ func (cr *CartRepositoryImpl) findProductsFromProductCartsList(productCarts []mo
 		product := models.Product{}
 		err := cr.findProductById(&product, e.ProductId)
 		if err != nil {
-			logger.Error("unable to get the product: %s", err.Error())
+			logger.Error(fmt.Sprintf("unable to get the product: %v", err.Error()))
+		} else {
+			*productList = append(*productList, product)
 		}
-		*productList = append(*productList, product)
 	}
 }
 

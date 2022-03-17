@@ -68,3 +68,10 @@ func getMockedProductList() []models.Product {
 	var products []models.Product
 	return append(products, getMockedProduct())
 }
+
+func getMockedQuery(query string, parameter int) []interface{} {
+	var queryArray []interface{}
+	queryArray = append(queryArray, query, parameter)
+
+	return queryArray
+}
