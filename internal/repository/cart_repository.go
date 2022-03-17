@@ -70,7 +70,8 @@ func (cr *CartRepositoryImpl) AddProductToCart(productId, clientId int) error {
 	product := models.Product{}
 	err = cr.findProductById(&product, productId)
 	if err != nil {
-		return err
+		logger.Error(fmt.Sprintf("unable to get the product: %v", err.Error()))
+		return errors.New("unable to find the product in our db")
 	}
 
 	productCart := models.ProductCart{
