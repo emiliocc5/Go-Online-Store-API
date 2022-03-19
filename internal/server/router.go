@@ -36,7 +36,7 @@ func init() {
 	}
 	cartHandler = &handler.CartHandlerImpl{
 		CartService: &services.CartServiceImpl{
-			CartRepository: &repository.CartRepositoryImpl{
+			CartRepository: &repository.PgCartRepository{
 				DbClient: client,
 			},
 		},

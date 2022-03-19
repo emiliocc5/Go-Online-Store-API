@@ -64,7 +64,7 @@ func Test_GivenAValidClientId_thenReturnCart(t *testing.T) {
 		arg.Type = getMockedProduct().Type
 	})
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	resp, err := repo.GetCart(aValidClientId)
 
@@ -82,7 +82,7 @@ func Test_GivenANotValidClientId_thenClientNotFoundInDb(t *testing.T) {
 	client := models.Client{}
 	dbClientMock.On("Find", &client, findClientByIdQuery).Return(getMockedDbObject(nil, errors.New("client not found")))
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	resp, err := repo.GetCart(aNotValidClientId)
 
@@ -110,7 +110,7 @@ func Test_GivenAValidClientId_thenCartNotFoundInDb(t *testing.T) {
 	}
 	dbClientMock.On("First", &clientCart, firstCartByClientIdQuery).Return(getMockedDbObject(nil, errors.New("cart not found")))
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	resp, err := repo.GetCart(aValidClientId)
 
@@ -149,7 +149,7 @@ func Test_GivenAValidClientId_ThenFoundCartButNotFoundListOfProducts(t *testing.
 	var productsCarts []models.ProductCart
 	dbClientMock.On("Find", &productsCarts, findProductsByCartIdQuery).Return(getMockedDbObject(nil, errors.New("unable to find list of products")))
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	resp, err := repo.GetCart(aValidClientId)
 
@@ -192,7 +192,7 @@ func Test_GivenAValidClientId_CartAndProductsFound_ButNotFoundProductsById_ThenR
 
 	product := models.Product{}
 	dbClientMock.On("Find", &product, findProductByIdQuery).Return(getMockedDbObject(nil, errors.New("unable to find by id")))
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	resp, err := repo.GetCart(aValidClientId)
 
@@ -249,7 +249,7 @@ func Test_AddProductToACart_Successful(t *testing.T) {
 		arg.CartId = getMockedProductCart().CartId
 	})
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	err := repo.AddProductToCart(aValidProductId, aValidClientId)
 
@@ -267,7 +267,7 @@ func Test_GivenNotValidClientId_thenClientNotFoundInDbAndNotAbleToAddProduct(t *
 	client := models.Client{}
 	dbClientMock.On("Find", &client, findClientByIdQuery).Return(getMockedDbObject(nil, errors.New("client not found")))
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	err := repo.AddProductToCart(aValidProductId, aNotValidClientId)
 
@@ -295,7 +295,7 @@ func Test_GivenValidClientId_ThenUnableToFindOrCreateCartToAddProduct(t *testing
 	}
 	dbClientMock.On("FirstOrCreate", &clientCart, firstOrCreateCartByClientIdQuery).Return(getMockedDbObject(nil, errors.New("cart not found and not created")))
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	err := repo.AddProductToCart(aValidProductId, aValidClientId)
 
@@ -332,7 +332,7 @@ func Test_GivenValidClientIdAndGetValidCart_ThenUnableToFindProductById(t *testi
 	product := models.Product{}
 	dbClientMock.On("Find", &product, findProductByIdQuery).Return(getMockedDbObject(nil, errors.New("unable to find by id")))
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	err := repo.AddProductToCart(aValidProductId, aValidClientId)
 
@@ -383,7 +383,7 @@ func Test_GivenValidClientId_FoundValidCart_FoundProductById_ThenUnableToCreateP
 	}
 	dbClientMock.On("Create", &productCart).Return(getMockedDbObject(nil, errors.New("unable to create association")))
 
-	repo := repository.CartRepositoryImpl{DbClient: dbClientMock}
+	repo := repository.PgCartRepository{DbClient: dbClientMock}
 
 	err := repo.AddProductToCart(aValidProductId, aValidClientId)
 
