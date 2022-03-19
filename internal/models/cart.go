@@ -1,6 +1,7 @@
-package dbModel
+package models
 
 type Cart struct {
-	Id       int `pg:"id"`
-	ClientId int `pg:"clientid"`
+	Id       int `gorm:"primarykey"`
+	ClientId int
+	Client   Client
 }

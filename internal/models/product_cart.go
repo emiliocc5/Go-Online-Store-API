@@ -1,8 +1,9 @@
-package dbModel
+package models
 
 type ProductCart struct {
-	tableName struct{} `pg:"products_carts"`
-	Id        int      `pg:"id"`
-	ProductId int      `pg:"productid"`
-	CartId    int      `pg:"cartid"`
+	Id        int `gorm:"primarykey"`
+	ProductId int
+	Product   Product //TODO Check if this its neccessary
+	CartId    int
+	Cart      Cart //TODO Check if this its neccessary
 }

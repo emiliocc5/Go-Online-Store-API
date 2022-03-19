@@ -1,6 +1,6 @@
-package dbModel
+package models
 
 type Client struct {
-	tableName struct{} `pg:"clients"`
-	Id        int      `json:"id"`
+	Id   int `gorm:"primarykey"`
+	Name string
 }

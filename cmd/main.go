@@ -7,11 +7,7 @@ import (
 func main() {
 	s := server.New()
 
-	/*r := s.Router()
-
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"data": "hello world"})
-	})*/
+	s.ConfigureRoutes()
 
 	s.Run()
 }
