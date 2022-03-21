@@ -6,6 +6,19 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	aValidClientId     = 123
+	aValidProductId    = 123
+	aValidCartId       = 1
+	aValidCategoryId   = 1
+	aValidLabel        = "aValidLabel"
+	aValidType         = 1
+	aValidDownloadUrl  = ""
+	aValidWeight       = 7.5
+	aNotValidClientId  = 000
+	aNotValidProductId = 0
+)
+
 type DbClientMock struct{ mock.Mock }
 
 func (mock *DbClientMock) First(dest interface{}, conds ...interface{}) (tx *gorm.DB) {

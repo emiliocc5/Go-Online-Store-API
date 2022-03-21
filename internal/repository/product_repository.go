@@ -37,7 +37,8 @@ func (pr *PgProductRepository) FindProductById(productId int) (*models.Product, 
 	product := models.Product{}
 	productResult := pr.DbClient.Find(&product, "id = ?", productId)
 	if productResult.Error != nil {
-		return nil, productResult.Error
+		logger.Errorf("unable to find the product with error: %v", productResult.Error)
+		return nil, errors.New("unable to find the product in our db")
 	}
 	return &product, nil
 }
