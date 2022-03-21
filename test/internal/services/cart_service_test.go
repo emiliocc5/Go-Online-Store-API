@@ -65,7 +65,8 @@ func Test_GivenAValidClientId_AnInvalidProductId_ThenProductNotFoundInDb(t *test
 
 	clientMockRepository.On("IsClientInDataBase", aValidClientId).Return(true)
 
-	productMockRepository.On("FindProductById", anInvalidProductId).Return(nil, errors.New("product not found"))
+	product := models.Product{}
+	productMockRepository.On("FindProductById", anInvalidProductId).Return(&product, errors.New("product not found"))
 
 	cartMockRepository.On("AddProductToCart", mock.Anything, mock.Anything).Return(nil)
 
@@ -95,7 +96,7 @@ func Test_GivenAValidClientId_AValidProductId_ThenUnableToAddProductToTheCart(t 
 	productMocked := getValidDbProduct()
 	productMockRepository.On("FindProductById", aValidProductId).Return(&productMocked, nil)
 
-	cartMockRepository.On("AddProductToCart", productMocked.Id, aValidClientId).Return(errors.New("could not add product"))
+	cartMockRepository.On("AddProductToCart", aValidProductId, aValidClientId).Return(errors.New("could not add product"))
 
 	cs := services.CartServiceImpl{
 		CartRepository:    cartMockRepository,
@@ -111,7 +112,7 @@ func Test_GivenAValidClientId_AValidProductId_ThenUnableToAddProductToTheCart(t 
 	productMockRepository.AssertNumberOfCalls(t, "FindProductById", 1)
 	productMockRepository.AssertCalled(t, "FindProductById", aValidProductId)
 	cartMockRepository.AssertNumberOfCalls(t, "AddProductToCart", 1)
-	cartMockRepository.AssertCalled(t, "AddProductToCart", aValidClientId, aValidProductId)
+	cartMockRepository.AssertCalled(t, "AddProductToCart", aValidProductId, aValidClientId)
 }
 
 func Test_GivenAValidClientId_ThenReturnCartWithElements(t *testing.T) {
@@ -142,15 +143,84 @@ func Test_GivenAValidClientId_ThenReturnCartWithElements(t *testing.T) {
 	productMockRepository.AssertNumberOfCalls(t, "FindProductsFromCart", 1)
 }
 
-func Test_GetCartWithError(t *testing.T) {
-	mockRepository := &CartRepositoryMock{}
-	var emptyProducts []models.Product
+func Test_GivenANotValidClientId_ThenUnableToGetCart(t *testing.T) {
+	clientMockRepository := &ClientRepositoryMock{}
+	productMockRepository := &ProductRepositoryMock{}
+	cartMockRepository := &CartRepositoryMock{}
 
-	mockRepository.On("GetCart", mock.Anything, mock.Anything).Return(&emptyProducts, errors.New("cart not found"))
+	clientMockRepository.On("IsClientInDataBase", anInvalidClientId).Return(false)
 
-	cs := services.CartServiceImpl{CartRepository: mockRepository}
+	validCart := getMockedValidCart()
+	cartMockRepository.On("GetCartByClient", anInvalidClientId).Return(&validCart, nil)
+
+	productMockRepository.On("FindProductsFromCart", aValidCartId).Return(getValidListOfProducts(), nil)
+
+	cs := services.CartServiceImpl{
+		CartRepository:    cartMockRepository,
+		ClientRepository:  clientMockRepository,
+		ProductRepository: productMockRepository,
+	}
+	resp, err := cs.GetCart(anInvalidClientId)
+
+	assert.EqualError(t, err, fmt.Sprintf("client with id: %v not found", anInvalidClientId))
+	assert.NotNil(t, resp)
+	assert.Equal(t, 0, len(resp.Products))
+	clientMockRepository.AssertNumberOfCalls(t, "IsClientInDataBase", 1)
+	cartMockRepository.AssertNumberOfCalls(t, "GetCartByClient", 0)
+	productMockRepository.AssertNumberOfCalls(t, "FindProductsFromCart", 0)
+}
+
+func Test_GivenAValidClientId_ThenCartNotFound(t *testing.T) {
+	clientMockRepository := &ClientRepositoryMock{}
+	productMockRepository := &ProductRepositoryMock{}
+	cartMockRepository := &CartRepositoryMock{}
+
+	clientMockRepository.On("IsClientInDataBase", aValidClientId).Return(true)
+
+	cart := models.Cart{}
+	cartMockRepository.On("GetCartByClient", aValidClientId).Return(&cart, errors.New("cart not found"))
+
+	productMockRepository.On("FindProductsFromCart", aValidCartId).Return(getValidListOfProducts(), nil)
+
+	cs := services.CartServiceImpl{
+		CartRepository:    cartMockRepository,
+		ClientRepository:  clientMockRepository,
+		ProductRepository: productMockRepository,
+	}
 	resp, err := cs.GetCart(aValidClientId)
 
-	assert.Error(t, err, "cart not found")
+	assert.EqualError(t, err, fmt.Sprintf("Failed trying to get cart for the client: %+v", aValidClientId))
+	assert.NotNil(t, resp)
 	assert.Equal(t, 0, len(resp.Products))
+	clientMockRepository.AssertNumberOfCalls(t, "IsClientInDataBase", 1)
+	cartMockRepository.AssertNumberOfCalls(t, "GetCartByClient", 1)
+	productMockRepository.AssertNumberOfCalls(t, "FindProductsFromCart", 0)
+}
+
+func Test_GivenAValidClientId_CartFound_ThenListOfProductsNotFound(t *testing.T) {
+	clientMockRepository := &ClientRepositoryMock{}
+	productMockRepository := &ProductRepositoryMock{}
+	cartMockRepository := &CartRepositoryMock{}
+
+	clientMockRepository.On("IsClientInDataBase", aValidClientId).Return(true)
+
+	cart := getMockedValidCart()
+	cartMockRepository.On("GetCartByClient", aValidClientId).Return(&cart, nil)
+
+	var emptyProducts []models.Product
+	productMockRepository.On("FindProductsFromCart", aValidCartId).Return(&emptyProducts, errors.New("products not found"))
+
+	cs := services.CartServiceImpl{
+		CartRepository:    cartMockRepository,
+		ClientRepository:  clientMockRepository,
+		ProductRepository: productMockRepository,
+	}
+	resp, err := cs.GetCart(aValidClientId)
+
+	assert.EqualError(t, err, fmt.Sprintf(fmt.Sprintf("unable to get the list of products from the cart: %v", cart.Id)))
+	assert.NotNil(t, resp)
+	assert.Equal(t, 0, len(resp.Products))
+	clientMockRepository.AssertNumberOfCalls(t, "IsClientInDataBase", 1)
+	cartMockRepository.AssertNumberOfCalls(t, "GetCartByClient", 1)
+	productMockRepository.AssertNumberOfCalls(t, "FindProductsFromCart", 1)
 }

@@ -41,13 +41,14 @@ func (c *CartServiceImpl) GetCart(clientId int) (response.GetCartResponse, error
 	if errGetCart != nil {
 		logger.Error(fmt.Sprintf("Failed trying to get cart for the client: %+v with error: %+v",
 			clientId, errGetCart))
-		return resp, errGetCart
+		return resp, errors.New(fmt.Sprintf("Failed trying to get cart for the client: %+v",
+			clientId))
 	}
 
 	prods, errGetProds := c.ProductRepository.FindProductsFromCart(cart.Id)
 	if errGetProds != nil {
 		logger.Errorf("unable to get the list of products from the cart: %v, with error: %v", cart.Id, errGetProds)
-		return resp, errGetProds
+		return resp, errors.New(fmt.Sprintf("unable to get the list of products from the cart: %v", cart.Id))
 	}
 	resp.Products = parseProducts(*prods)
 
