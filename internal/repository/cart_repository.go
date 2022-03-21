@@ -34,9 +34,6 @@ func init() {
 }
 
 func (cr *PgCartRepository) GetCart(clientId int) (*[]models.Product, error) {
-	if !cr.isClientInDataBase(clientId) {
-		return nil, errors.New(fmt.Sprintf("client with id: %v not found", clientId))
-	}
 	clientCart := models.Cart{ClientId: clientId}
 
 	err := cr.findCartForClientId(&clientCart, clientId)
@@ -57,10 +54,6 @@ func (cr *PgCartRepository) GetCart(clientId int) (*[]models.Product, error) {
 }
 
 func (cr *PgCartRepository) AddProductToCart(productId, clientId int) error {
-	if !cr.isClientInDataBase(clientId) {
-		return errors.New(fmt.Sprintf("client with id: %v not found", clientId))
-	}
-
 	clientCart := models.Cart{ClientId: clientId}
 	err := cr.findOrCreateCartForClientId(&clientCart, clientId)
 	if err != nil {

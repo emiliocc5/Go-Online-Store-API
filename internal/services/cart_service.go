@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"fmt"
 	"github.com/emiliocc5/online-store-api/internal/models"
 	"github.com/emiliocc5/online-store-api/internal/models/response"
@@ -19,7 +20,8 @@ type (
 		GetCart(clientId int) (response.GetCartResponse, error)
 	}
 	CartServiceImpl struct {
-		CartRepository repository.CartRepository
+		CartRepository   repository.CartRepository
+		ClientRepository repository.ClientRepository
 	}
 )
 
@@ -27,7 +29,13 @@ func init() {
 	logger = utils.GetLogger()
 }
 
+//TODO crear una estructura de product repository para reducir la lógica en las clases de repositorio
+
 func (c *CartServiceImpl) AddProduct(productId, clientId int) error {
+	if !c.ClientRepository.IsClientInDataBase(clientId) {
+		return errors.New(fmt.Sprintf("client with id: %v not found", clientId))
+	}
+
 	errAddProd := c.CartRepository.AddProductToCart(productId, clientId)
 	if errAddProd != nil {
 		logger.Error(fmt.Sprintf("Failed trying to add product: %+v to cart to the client: %+v with error: %+v",
@@ -39,8 +47,12 @@ func (c *CartServiceImpl) AddProduct(productId, clientId int) error {
 
 func (c *CartServiceImpl) GetCart(clientId int) (response.GetCartResponse, error) {
 	resp := response.GetCartResponse{}
-	prods, errGetCart := c.CartRepository.GetCart(clientId)
 
+	if !c.ClientRepository.IsClientInDataBase(clientId) {
+		return resp, errors.New(fmt.Sprintf("client with id: %v not found", clientId))
+	}
+
+	prods, errGetCart := c.CartRepository.GetCart(clientId)
 	if errGetCart != nil {
 		logger.Error(fmt.Sprintf("Failed trying to get cart for the client: %+v with error: %+v",
 			clientId, errGetCart))

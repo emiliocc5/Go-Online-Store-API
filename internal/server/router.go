@@ -39,6 +39,9 @@ func init() {
 			CartRepository: &repository.PgCartRepository{
 				DbClient: client,
 			},
+			ClientRepository: &repository.PgClientRepository{
+				DbClient: client,
+			},
 		},
 	}
 }
