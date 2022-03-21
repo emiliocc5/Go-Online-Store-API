@@ -1,5 +1,5 @@
 package response
 
-type GetCartResponse struct {
+type GetOrderProductsResponse struct {
 	Products []ProductResponse `json:"products"`
 }

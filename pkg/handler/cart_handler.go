@@ -28,7 +28,7 @@ func (ch *CartHandlerImpl) HandleGetCart(context *gin.Context) {
 }
 
 func (ch *CartHandlerImpl) HandleAddProduct(context *gin.Context) {
-	err := ch.CartService.AddProduct(getProductIdFromContext(context), getClientIdFromContext(context))
+	err := ch.CartService.AddProductToCart(getProductIdFromContext(context), getClientIdFromContext(context))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, response.ErrorResponse{Error: err.Error()})
 		return
