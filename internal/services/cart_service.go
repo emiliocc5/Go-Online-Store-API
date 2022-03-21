@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"github.com/emiliocc5/online-store-api/internal/models"
 	"github.com/emiliocc5/online-store-api/internal/models/response"
 	"github.com/emiliocc5/online-store-api/internal/repository"
 	"github.com/emiliocc5/online-store-api/internal/utils"
@@ -12,13 +13,15 @@ var (
 	logger *logrus.Logger
 )
 
-type CartService interface {
-	AddProduct(productId, clientId int) error
-	GetCart(clientId int) (response.GetCartResponse, error)
-}
-type CartServiceImpl struct {
-	CartRepository repository.CartRepository
-}
+type (
+	CartService interface {
+		AddProduct(productId, clientId int) error
+		GetCart(clientId int) (response.GetCartResponse, error)
+	}
+	CartServiceImpl struct {
+		CartRepository repository.CartRepository
+	}
+)
 
 func init() {
 	logger = utils.GetLogger()
@@ -45,4 +48,8 @@ func (c *CartServiceImpl) GetCart(clientId int) (response.GetCartResponse, error
 	resp.Products = *prods
 
 	return resp, nil
+}
+
+func parseProducts([]models.Product) []response.ProductResponse {
+	
 }

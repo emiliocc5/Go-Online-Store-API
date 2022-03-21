@@ -1,6 +1,6 @@
 package models
 
 type Category struct {
-	Id   int `gorm:"primarykey"`
-	Name string
+	Id    int `gorm:"primarykey"`
+	Label string
 }

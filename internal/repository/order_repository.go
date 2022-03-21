@@ -20,7 +20,6 @@ type (
 		First(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 		Find(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 		Create(value interface{}) (tx *gorm.DB)
-		FirstOrCreate(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 	}
 )
 
