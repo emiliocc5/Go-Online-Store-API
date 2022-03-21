@@ -15,7 +15,7 @@ var (
 
 type (
 	CartRepository interface {
-		GetCart(clientId int) (*[]models.Product, error)
+		GetCartByClient(clientId int) (*models.Cart, error)
 		AddProductToCart(productId, clientId int) error
 	}
 	PgCartRepository struct {
@@ -23,7 +23,6 @@ type (
 	}
 	ICartRepositoryDbClient interface {
 		First(dest interface{}, conds ...interface{}) (tx *gorm.DB)
-		Find(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 		Create(value interface{}) (tx *gorm.DB)
 		FirstOrCreate(dest interface{}, conds ...interface{}) (tx *gorm.DB)
 	}
@@ -33,7 +32,7 @@ func init() {
 	logger = utils.GetLogger()
 }
 
-func (cr *PgCartRepository) GetCart(clientId int) (*[]models.Product, error) {
+func (cr *PgCartRepository) GetCartByClient(clientId int) (*models.Cart, error) {
 	clientCart := models.Cart{ClientId: clientId}
 
 	err := cr.findCartForClientId(&clientCart, clientId)
@@ -41,16 +40,7 @@ func (cr *PgCartRepository) GetCart(clientId int) (*[]models.Product, error) {
 		return nil, err
 	}
 
-	var productsCarts []models.ProductCart
-	err = cr.findListOfProductsForCartId(&productsCarts, clientCart.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	var productList []models.Product
-	cr.findProductsFromProductCartsList(productsCarts, &productList)
-
-	return &productList, nil
+	return &clientCart, nil
 }
 
 func (cr *PgCartRepository) AddProductToCart(productId, clientId int) error {
@@ -60,18 +50,10 @@ func (cr *PgCartRepository) AddProductToCart(productId, clientId int) error {
 		return err
 	}
 
-	product := models.Product{}
-	err = cr.findProductById(&product, productId)
-	if err != nil {
-		logger.Error(fmt.Sprintf("unable to get the product: %v", err.Error()))
-		return errors.New("unable to find the product in our db")
-	}
-
 	productCart := models.ProductCart{
-		ProductId: product.Id,
+		ProductId: productId,
 		CartId:    clientCart.Id,
 	}
-
 	productCartResult := cr.DbClient.Create(&productCart)
 	if productCartResult.Error != nil {
 		logger.Errorf("Error: %v", productCartResult.Error.Error())
@@ -83,44 +65,10 @@ func (cr *PgCartRepository) AddProductToCart(productId, clientId int) error {
 	return nil
 }
 
-func (cr *PgCartRepository) isClientInDataBase(clientId int) bool {
-	client := models.Client{}
-	findClientResult := cr.DbClient.Find(&client, "id = ?", clientId)
-	return findClientResult.Error == nil
-}
-
 func (cr *PgCartRepository) findCartForClientId(clientCart *models.Cart, clientId int) error {
 	clientResult := cr.DbClient.First(clientCart, "client_id = ?", clientId)
 	if clientResult.Error != nil {
 		return errors.New(fmt.Sprintf("cart for client id: %v not found", clientId))
-	}
-	return nil
-}
-
-func (cr *PgCartRepository) findListOfProductsForCartId(productCarts *[]models.ProductCart, clientCartId int) error {
-	productsResult := cr.DbClient.Find(productCarts, "cart_id = ?", clientCartId)
-	if productsResult.Error != nil {
-		return errors.New("unable to retrieve the list of products")
-	}
-	return nil
-}
-
-func (cr *PgCartRepository) findProductsFromProductCartsList(productCarts []models.ProductCart, productList *[]models.Product) {
-	for _, e := range productCarts {
-		product := models.Product{}
-		err := cr.findProductById(&product, e.ProductId)
-		if err != nil {
-			logger.Error(fmt.Sprintf("unable to get the product: %v", err.Error()))
-		} else {
-			*productList = append(*productList, product)
-		}
-	}
-}
-
-func (cr *PgCartRepository) findProductById(product *models.Product, productId int) error {
-	productResult := cr.DbClient.Find(product, "id = ?", productId)
-	if productResult.Error != nil {
-		return productResult.Error
 	}
 	return nil
 }

@@ -42,6 +42,9 @@ func init() {
 			ClientRepository: &repository.PgClientRepository{
 				DbClient: client,
 			},
+			ProductRepository: &repository.PgProductRepository{
+				DbClient: client,
+			},
 		},
 	}
 }
