@@ -69,7 +69,7 @@ func (c *CartServiceImpl) AddProductToCart(productId, clientId int) error {
 	if errAddProd != nil {
 		logger.Error(fmt.Sprintf("Failed trying to add product: %+v to cart to the client: %+v with error: %+v",
 			productId, clientId, errAddProd))
-		return errAddProd
+		return errors.New("unable to add product to the cart")
 	}
 	return nil
 }

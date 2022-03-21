@@ -2,7 +2,16 @@ package services
 
 import (
 	"github.com/emiliocc5/online-store-api/internal/models"
+	"github.com/emiliocc5/online-store-api/internal/models/response"
 	"github.com/stretchr/testify/mock"
+)
+
+const (
+	aValidProductId    = 1
+	aValidClientId     = 2
+	aValidCartId       = 3
+	anInvalidProductId = 000
+	anInvalidClientId  = 111
 )
 
 type CartRepositoryMock struct{ mock.Mock }
@@ -37,19 +46,36 @@ func (mock *ProductRepositoryMock) FindProductById(productId int) (*models.Produ
 func getValidListOfProducts() *[]models.Product {
 	var products []models.Product
 
-	product := getValidProduct()
+	product := getValidDbProduct()
 
 	products = append(products, product)
 	return &products
 }
 
-func getValidProduct() models.Product {
+func getValidDbProduct() models.Product {
 	return models.Product{
-		Id:          1,
+		Id:          aValidProductId,
 		CategoryId:  1,
 		Label:       "Keyboard",
 		Type:        1,
 		DownloadUrl: "",
 		Weight:      3.5,
+	}
+}
+
+func getValidResponseProduct() response.ProductResponse {
+	return response.ProductResponse{
+		Id:          aValidProductId,
+		Label:       "Keyboard",
+		Type:        1,
+		DownloadUrl: "",
+		Weight:      3.5,
+	}
+}
+
+func getMockedValidCart() models.Cart {
+	return models.Cart{
+		Id:       aValidCartId,
+		ClientId: aValidClientId,
 	}
 }
