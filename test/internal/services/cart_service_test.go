@@ -16,13 +16,24 @@ const (
 )
 
 func Test_AddProductToCartSuccessful(t *testing.T) {
-	mockRepository := &CartRepositoryMock{}
+	clientMockRepository := &ClientRepositoryMock{}
+	productMockRepository := &ProductRepositoryMock{}
+	cartMockRepository := &CartRepositoryMock{}
 
-	mockRepository.On("AddProductToCart", mock.Anything, mock.Anything).Return(nil)
+	clientMockRepository.On("IsClientInDataBase", aValidClientId).Return(true)
 
-	cs := services.CartServiceImpl{CartRepository: mockRepository}
+	productMocked := getValidProduct()
+	productMockRepository.On("FindProductById", aValidProductId).Return(&productMocked, nil)
 
-	err := cs.AddProduct(aValidProductId, aValidClientId)
+	cartMockRepository.On("AddProductToCart", mock.Anything, mock.Anything).Return(nil)
+
+	cs := services.CartServiceImpl{
+		CartRepository:    cartMockRepository,
+		ClientRepository:  clientMockRepository,
+		ProductRepository: productMockRepository,
+	}
+
+	err := cs.AddProductToCart(aValidProductId, aValidClientId)
 
 	assert.Nil(t, err)
 }
@@ -34,7 +45,7 @@ func Test_AddProductToCartWithError(t *testing.T) {
 
 	cs := services.CartServiceImpl{CartRepository: mockRepository}
 
-	err := cs.AddProduct(anInvalidProductId, aValidClientId)
+	err := cs.AddProductToCart(anInvalidProductId, aValidClientId)
 
 	assert.NotNil(t, err)
 	assert.Error(t, err, "unable to find the product")
